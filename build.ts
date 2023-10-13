@@ -1,54 +1,27 @@
-import assert from 'assert';
-import { existsSync } from 'fs';
 import fs from 'node:fs';
 import { join, resolve } from 'path';
 
-let entrypoints = [];
+let entrypoints = [];//遍历保存的结果数组
 
-//遍历文件夹
 const basePath = './pages'
-const pages = resolve(basePath);//entrypoint dir
-let deque: string[] = [];
+const prefix = basePath//添加到结果的前缀，遍历的结果是相对路径，这个前缀会拼接到相对路径前面
+const pages = resolve(basePath);//要遍历的文件夹
+let stack: string[] = [];//保存遍历文件夹的栈
 
-//first push to stack
 for (const target of fs.readdirSync(pages)){
-  if(fs.statSync(join(pages, target)).isDirectory()) deque.unshift(target);
-  /^\S+\.(tsx|ts)$/.test(target) && entrypoints.push(join(basePath, target));
+  if(fs.statSync(join(pages, target)).isDirectory()) stack.unshift(target);//如果是文件夹就放进栈
+  /^\S+\.(tsx|ts)$/.test(target) && entrypoints.push(join(basePath, target));//匹配tsx｜ts为后缀的文件，并保存结果
 }
-
-
-//优化：将文件单独导出，只在栈中存文件夹
-//1、将pages所有文件都导出
-//2、将所有文件夹放进栈
-//3、开始取第一个，执行1 执行2，执行3
-
-while(!!deque.length){
-  let currentFile = deque.shift()!;
+while(!!stack.length){
+  let currentFile = stack.shift()!;
   for (const target of fs.readdirSync(join(pages, currentFile as any))) {
-    if(fs.statSync(join(pages, currentFile, target)).isDirectory()){
-      deque.unshift(join(currentFile, target));
+    if(fs.statSync(join(pages, currentFile, target)).isDirectory()){//如果是文件夹就放进栈
+      stack.unshift(join(currentFile, target));
     } else {
-      /^\S+\.(tsx|ts)$/.test(target) && entrypoints.push(join(basePath, currentFile, target));
+      /^\S+\.(tsx|ts)$/.test(target) && entrypoints.push(join(basePath, currentFile, target));//匹配tsx｜ts为后缀的文件，并保存结果
     }
   }
 }
-// do {
-//   let currentFile = deque.shift()!;
-//   assert(existsSync(join(pages, currentFile)));
-//   if(fs.statSync(join(pages, currentFile)).isDirectory()){
-//     for (const target of fs.readdirSync(join(pages, currentFile as any))) {
-//       /^\S+\.(tsx|ts)$/.test(target) && entrypoints.push(join(currentFile, target));
-//       fs.statSync(join(pages, currentFile, target)).isDirectory() && deque.unshift(join(currentFile, target));
-//     }
-//     continue;
-//   } else {
-//     if(/^\S+\.(tsx|ts)$/.test(currentFile)){
-//       entrypoints.push(currentFile);
-//     }
-//   }
-// } while (!!deque.length);
-
-
 
 Bun.build({
   entrypoints,
