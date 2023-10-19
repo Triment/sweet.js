@@ -3,17 +3,17 @@ import { findWildcard, countParams, longestCommonPrefix } from './tree'
 describe("tree.ts-测试查找路径参数", ()=>{
     test("findWildcard", ()=>{
         expect(findWildcard("/hu/:param")).toEqual({
-            param: "param",
+            wildCard: ":param",
             index: 4,
             valid: true
         })
         expect(findWildcard("/hu/:param/about")).toEqual({
-            param: "param",
+            wildCard: ":param",
             index: 4,
             valid: true
         })
         expect(findWildcard("/hu/*param/*about")).toEqual({
-            param: "param",
+            wildCard: "*param",
             index: 4,
             valid: true
         })

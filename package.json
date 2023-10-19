@@ -8,7 +8,8 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "dev": "bun run index.tsx"
+    "dev": "bun run index.tsx",
+    "main":"bun run main.ts"
   },
   "type": "module",
   "dependencies": {
