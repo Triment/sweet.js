@@ -35,7 +35,6 @@ function searchNode(node: Node, parts: string[], length: number, index: number, 
     while(stack.length>0){
         let current = stack.pop();
         assert(current);
-        console.log(current)
         if(index === length) {
             if(current.part == parts[index])
             return [current, params];
