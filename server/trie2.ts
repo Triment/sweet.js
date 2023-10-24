@@ -3,7 +3,7 @@ import assert from "assert";
 type Context = {
     params: Record<string, string>,
     req: Request
-}
+} & {[key:string]: any}
 
 type HTTPHandler = (context: Context)=>Response
 
@@ -29,7 +29,7 @@ function insertNode(node: Node, method: string, path: string, handle: (context: 
                 children: {},
                 part: parts[start],
                 wildChild: parts[start][0] === "*"|| parts[start][0] === ":",//叶节点,
-                fullPath: parts.slice(0, start).join('/'),//用作节点的唯一ID
+                //fullPath: parts.slice(0, start).join('/'),//用作节点的唯一ID
                 parent: target,
                 index: start
             }
