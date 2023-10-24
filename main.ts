@@ -1,4 +1,5 @@
 import { join } from "path";
+import { createRouter } from "./server/route";
 
 function getExt(path: string){
     let idx = path.length-1;
@@ -31,20 +32,37 @@ function parseContentType(ext: string){
 
 const assetsDir = "dist";
 
+
+
+const route = createRouter({
+    prefix: '/'
+});
+route.GET('/',(context)=>{
+    return new Response(context.req.method);
+})
+route.GET('/hello/:jiji', (con)=>{
+    return new Response(con.params['jiji'])
+})
+
+const fetch = (req: Request) => {
+    return  route.matchRoute(req)
+};
+
 Bun.serve({
     port: 3000,
-    fetch(req) {
-        const notFound = new Response("Not Found");
-        const url = new URL(req.url);
-        if(url.pathname.startsWith('/assets/')){
-            const filePath = url.pathname.split('/assets/')[1];
-            let ext = getExt(filePath);
-            return new Response(Bun.file(join(assetsDir, filePath)), {
-                headers: {
-                    "Content-Type": parseContentType(ext)
-                }
-            });
-        }
-        return notFound
-    },
+    // fetch(req) {
+    //     const notFound = new Response("Not Found");
+    //     const url = new URL(req.url);
+    //     if(url.pathname.startsWith('/assets/')){
+    //         const filePath = url.pathname.split('/assets/')[1];
+    //         let ext = getExt(filePath);
+    //         return new Response(Bun.file(join(assetsDir, filePath)), {
+    //             headers: {
+    //                 "Content-Type": parseContentType(ext)
+    //             }
+    //         });
+    //     }
+    //     return notFound
+    // },
+    fetch
 })

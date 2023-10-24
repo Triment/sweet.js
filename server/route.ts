@@ -1,3 +1,5 @@
+import { Context, NODE, insertNode, searchNode } from "./trie2"
+
 type HttpType = 'POST' | 'GET' | 'HEAD' | 'PUT' | 'DELETE' | 'CONNECT' | 'OPTIONS' | 'TRACE' | 'PATCH'
 
 type RouteWithHandler = {
@@ -5,19 +7,37 @@ type RouteWithHandler = {
     regex: RegExp,
     handler: (req: Request) => Response
 }
-//路由应当支持封闭运算（包含）
-export class RouteClassic {
-    protected tree: TireTree = {};
+const Router = {
 
-    constructor(tree: TireTree){
-        this.tree = tree;
-    }
-
-    public include(route:RouteClassic) {
-        
-    }
 }
-//前缀树
-type TireTree = {
 
+const methods = ['POST' , 'GET' , 'HEAD' , 'PUT' , 'DELETE' , 'CONNECT' , 'OPTIONS' , 'TRACE' , 'PATCH']
+
+type RouterType = {
+    tree: NODE,
+    matchRoute: (req:Request)=> Response
+} & { [key in HttpType]: (path: string, handle:(context:Context)=> Response)=>void }
+
+export function createRouter( { prefix } : {prefix: string }){
+    let root: NODE = {
+        children: {},
+        part: prefix,
+        wildChild: false,
+        index: 0
+    }
+    const route:  { tree: NODE } = {
+        tree: root
+    } 
+    for(const method of methods){
+        Reflect.set(route, method, function (path: string, handle:(context:Context)=> Response){
+            insertNode(route.tree as NODE, method, path, handle);
+        })
+    }
+    Reflect.set(route, 'matchRoute', function (req: Request){
+        return Reflect.apply(function (this: RouterType, req: Request){
+            const [node, params] = searchNode(this.tree, req.method.toUpperCase(), new URL(req.url).pathname)
+            return node({req: req, params});
+        }, route, [req])
+    })
+    return route as RouterType;
 }

@@ -7,20 +7,20 @@ type Context = {
 
 type HTTPHandler = (context: Context)=>Response
 
-type Node = {
-    children: Record<string, Node>,
+type NODE = {
+    children: Record<string, NODE>,
     part: string,
     wildChild: Boolean,
     fullPath?: string,
-    parent?: Node,
+    parent?: NODE,
     index: number,
     handle?: Record<string, (context: Context)=>Response>
 }
 
-function insertNode(node: Node, method: string, path: string, handle: (context: Context)=>Response ){
-    let target = Object.assign({}, node);
+function insertNode(NODE: NODE, method: string, path: string, handle: (context: Context)=>Response ){
+    let target = Object.assign({}, NODE);
     const parts = path.split('/').slice(1);
-    for(let start = 1; start < parts.length; start++) {
+    for(let start = 0; start < parts.length; start++) {
         let child = target.children[parts[start]];
         if(child){
             target = child;
@@ -41,13 +41,13 @@ function insertNode(node: Node, method: string, path: string, handle: (context: 
     target.handle![method] = handle;
 }
 
-function searchNode(node: Node, method: string, path: string): [HTTPHandler, Record<string, string>]{
+function searchNode(NODE: NODE, method: string, path: string): [HTTPHandler, Record<string, string>]{
     const parts = path.split('/').slice(1);
     assert(parts.length > 0);
     let params: Record<string, string> = {};
     let index = 0;
-    let stack: Node[] = [node];
-    let current: Node;
+    let stack: NODE[] = Object.keys(NODE.children).map(key=>NODE.children[key]);
+    let current: NODE;
     do {
         current = stack.pop()!;//取出栈顶
         if(current.index == index) {
@@ -75,5 +75,5 @@ function searchNode(node: Node, method: string, path: string): [HTTPHandler, Rec
     return [current.handle![method], params];
 }
 
-export { Node, insertNode, searchNode }
+export { NODE, insertNode, searchNode }
 export { Context, HTTPHandler }

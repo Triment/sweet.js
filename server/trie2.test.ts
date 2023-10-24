@@ -1,10 +1,10 @@
 import { expect, test, describe } from "bun:test";
-import { Node, insertNode, searchNode, Context } from './trie2';
+import { NODE, insertNode, searchNode, Context } from './trie2';
 describe("测试前缀树(new)", ()=>{
     test("Insert Test", ()=>{
-        const node: Node = {
+        const node: NODE = {
             children: {},
-            part: "hello",
+            part: "hellxo",
             wildChild: false,
             index: 0
         };
@@ -27,5 +27,6 @@ describe("测试前缀树(new)", ()=>{
         insertNode(node, 'POST', "/hello/:x/*target", handle2);
         target = searchNode(node, "POST", "/hello/80/hu/max");
         expect(target[1]['target']).toEqual("hu/max");
+        console.log(node)
     })
 })
