@@ -1,5 +1,3 @@
-import assert from "assert";
-
 type Context = {
     params: Record<string, string>,
     req: Request
@@ -43,7 +41,6 @@ function insertNode(NODE: NODE, method: string, path: string, handle: (context: 
 
 function searchNode(NODE: NODE, method: string, path: string): [HTTPHandler, Record<string, string>]{
     const parts = path.split('/').slice(1);
-    assert(parts.length > 0);
     let params: Record<string, string> = {};
     let index = 0;
     let stack: NODE[] = Object.keys(NODE.children).map(key=>NODE.children[key]);
