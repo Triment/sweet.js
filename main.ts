@@ -34,9 +34,7 @@ const assetsDir = "dist";
 
 
 
-const route = createRouter({
-    prefix: '/'
-});
+const route = createRouter();
 route.GET('/',(context)=>{
     return new Response(context.req.method);
 })

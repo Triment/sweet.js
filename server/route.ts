@@ -18,7 +18,7 @@ type RouterType = {
     matchRoute: (req:Request)=> Response
 } & { [key in HttpType]: (path: string, handle:(context:Context)=> Response)=>void }
 
-export function createRouter( { prefix } : {prefix: string }){
+export function createRouter( { prefix } : {prefix: string } = { prefix: '/' }){
     let root: NODE = {
         children: {},
         part: prefix,
