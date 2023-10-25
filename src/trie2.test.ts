@@ -27,6 +27,5 @@ describe("测试前缀树(new)", ()=>{
         insertNode(node, 'POST', "/hello/:x/*target", handle2);
         target = searchNode(node, "POST", "/hello/80/hu/max");
         expect(target[1]['target']).toEqual("hu/max");
-        console.log(node)
     })
 })
