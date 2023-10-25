@@ -3,7 +3,7 @@
   "module": "./dist/route.esm.js",
   "main": "./dist/route.esm.js",
   "types": "./types/src/route.d.ts",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": false,
   "exports": {
     ".": {
