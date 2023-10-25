@@ -15,10 +15,11 @@ type NODE = {
     handle?: Record<string, (context: Context)=>Response>
 }
 
-function insertNode(NODE: NODE, method: string, path: string, handle: (context: Context)=>Response ){
-    let target = Object.assign({}, NODE);
-    const parts = path.split('/').slice(1);
-    for(let start = 0; start < parts.length; start++) {
+function insertNode(node: NODE, method: string, path: string, handle: (context: Context)=>Response ){
+    let target = Object.assign({}, node);
+    const parts = path.split('/');
+    parts[0] = '/';
+    for(let start = 1; start < parts.length; start++) {
         let child = target.children[parts[start]];
         if(child){
             target = child;
@@ -29,7 +30,7 @@ function insertNode(NODE: NODE, method: string, path: string, handle: (context: 
                 wildChild: parts[start][0] === "*"|| parts[start][0] === ":",//叶节点,
                 //fullPath: parts.slice(0, start).join('/'),//用作节点的唯一ID
                 parent: target,
-                index: start
+                index: start + node.index//每次插入需加上“基节点”的层级
             }
         }
     }
@@ -39,14 +40,16 @@ function insertNode(NODE: NODE, method: string, path: string, handle: (context: 
     target.handle![method] = handle;
 }
 
-function searchNode(NODE: NODE, method: string, path: string): [HTTPHandler, Record<string, string>]{
-    const parts = path.split('/').slice(1);
+function searchNode(node: NODE, method: string, path: string): [HTTPHandler, Record<string, string>]{
+    const parts = path.split('/');
+    parts[0] = '/';
     let params: Record<string, string> = {};
     let index = 0;
-    let stack: NODE[] = Object.keys(NODE.children).map(key=>NODE.children[key]);
+    let stack: NODE[] = [node];
     let current: NODE;
     do {
         current = stack.pop()!;//取出栈顶
+        // console.log(index, current.part, current.index, parts[index])
         if(current.index == index) {
             if(current.part === parts[index]){//精准匹配
                 index++;
@@ -62,8 +65,8 @@ function searchNode(NODE: NODE, method: string, path: string): [HTTPHandler, Rec
                 index++;
             }
             if(current.part[0] === '*' && current.wildChild ){
-                params[current.part.slice(1)] = parts.slice(index).join('/')
-                return [current.handle![method], params]
+                params[current.part.slice(1)] = parts.slice(index).join('/');
+                return [current.handle![method], params];
             }
         } else {
             index--;
@@ -71,6 +74,26 @@ function searchNode(NODE: NODE, method: string, path: string): [HTTPHandler, Rec
     } while(index < parts.length && stack.length > 0);
     return [current.handle![method], params];
 }
+//合并两个树
+ function mergeToNode(first: NODE, second: NODE) {
 
-export { NODE, insertNode, searchNode }
+    //树直接将第二个树加入到第一个的子节点并把所有加入的子节点的索引增加 固定数值 = second.part.split('/').length
+    //主要更新的是路由关系
+    let target = Object.assign({}, first);
+    let stack: NODE[] = [second];
+
+    while(stack.length>0){
+        let attachment = stack.pop()!;
+        if(attachment.part === '/'){
+            for(const child of Object.keys(attachment.children)){
+                stack.push(attachment.children[child]);
+            }
+            continue;
+        }
+        attachment.parent = target;
+        attachment.index = target.index + 1;
+        target = target.children[attachment!.part] = attachment;
+    }
+}
+export { NODE, insertNode, searchNode, mergeToNode }
 export { Context, HTTPHandler }

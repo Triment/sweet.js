@@ -2,12 +2,12 @@ import { expect, test, describe } from "bun:test";
 import { NODE, insertNode, searchNode, Context } from './trie2';
 describe("测试前缀树(new)", ()=>{
     test("Insert Test", ()=>{
-        const node: NODE = {
+        let node: NODE = {
             children: {},
-            part: "hellxo",
+            part: '/',
             wildChild: false,
             index: 0
-        };
+        }
         const handle = (ctx: Context) => {
             return new Response(ctx.req.url)
         }
