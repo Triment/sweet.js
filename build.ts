@@ -29,9 +29,14 @@ Bun.build({
   sourcemap: 'external',
   splitting: true,
   external: ['preact'],
+  naming: "[dir]/[name]-[hash].[ext]",
   minify: {
     whitespace: true,
     identifiers: true,
     syntax: true
   }
+}).then((out)=>{
+  out.outputs.forEach(artifact=>{
+    console.log(artifact)
+  })
 })
