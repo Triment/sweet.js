@@ -1,5 +1,5 @@
 A zero dependencies http router for `bun.serve`
-
+[Homepage](https://github.com/Triment/sweet.js/tree/npm)
 ## useage
 ### install 
 ```bash
@@ -57,4 +57,36 @@ route.GET("/hello",[mid], (c)=>{
     console.log(c.hello);
     return new Response("hello");
 })
+```
+Emit to bun.js together
+
+```js
+import { compose, createRouter } from  '@triment/sweet.js'
+
+const route = createRouter();
+
+const route2 = createRouter({
+    prefix: '/xx'
+})
+
+route.GET("/", (c)=>{
+    return new Response("/")
+})
+route.GET("/hello", (c)=>{
+    return new Response("hello")
+})
+route.GET("/xx/:90", (c)=>{
+    return new Response("xx"+ c.params['90'])
+})
+route2.GET("/hello", (c)=>{
+    return new Response("xx/hello")
+})
+
+compose(route, route2)
+
+Bun.serve({
+    port: 3000,
+    fetch: (req)=>route.matchRoute(req)
+})
+
 ```
