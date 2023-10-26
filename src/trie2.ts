@@ -12,7 +12,7 @@ type NODE = {
     fullPath?: string,
     parent?: NODE,
     index: number,
-    handle?: Record<string, (context: Context)=>Response>
+    handle?: Record<string, HTTPHandler>
 }
 
 function insertNode(node: NODE, method: string, path: string, handle: (context: Context)=>Response ){
@@ -42,7 +42,8 @@ function insertNode(node: NODE, method: string, path: string, handle: (context: 
 
 function searchNode(node: NODE, method: string, path: string): [HTTPHandler, Record<string, string>]{
     const parts = path.split('/');
-    parts[0] = '/';
+    if(path[0] === '/') // 从根开始搜索
+        parts[0] = '/';//第一节点设置为 '/'
     let params: Record<string, string> = {};
     let index = 0;
     let stack: NODE[] = [node];
@@ -50,7 +51,7 @@ function searchNode(node: NODE, method: string, path: string): [HTTPHandler, Rec
     do {
         current = stack.pop()!;//取出栈顶
         // console.log(index, current.part, current.index, parts[index])
-        if(current.index == index) {
+        if(current.index - node.index == index) {//此处可以支持从子节点搜索路径
             if(current.part === parts[index]){//精准匹配
                 index++;
                 for(const child of Object.keys(current.children)){
@@ -76,7 +77,6 @@ function searchNode(node: NODE, method: string, path: string): [HTTPHandler, Rec
 }
 //合并两个树
  function mergeToNode(first: NODE, second: NODE) {
-
     //树直接将第二个树加入到第一个的子节点并把所有加入的子节点的索引增加 固定数值 = second.part.split('/').length
     //主要更新的是路由关系
     let target = Object.assign({}, first);

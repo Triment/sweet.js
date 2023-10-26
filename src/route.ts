@@ -1,26 +1,26 @@
-import { join } from "path"
-import { Context, NODE, insertNode, mergeToNode, searchNode } from "./trie2"
+import { Context, NODE, insertNode, mergeToNode, searchNode } from "./trie2";
 
-type HttpType = 'POST' | 'GET' | 'HEAD' | 'PUT' | 'DELETE' | 'CONNECT' | 'OPTIONS' | 'TRACE' | 'PATCH'
+type HttpType = 'POST' | 'GET' | 'HEAD' | 'PUT' | 'DELETE' | 'CONNECT' | 'OPTIONS' | 'TRACE' | 'PATCH';
 
-type RouteWithHandler = {
-    type: HttpType,
-    regex: RegExp,
-    handler: (req: Request) => Response
-}
-const Router = {
+const methods = ['POST', 'GET', 'HEAD', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'];
 
-}
 
-const methods = ['POST', 'GET', 'HEAD', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH']
+//中间件类型
+type MiddleType = ((context: Context)=>void)|((context: Context)=>Response);
 
+
+declare function methodHandler(path: string, handle: (context: Context) => Response):void
+declare function methodHandler(path: string, middle: MiddleType[],  handle: (context: Context) => Response):void
+//方法类型
+type MethodsType = typeof methodHandler;
+//路由类型
 type RouterType = {
     tree: NODE,
     matchRoute: (req: Request) => Response
-} & { [key in HttpType]: (path: string, handle: (context: Context) => Response) => void }
+} & { [key in HttpType]: MethodsType }
 
 export function createRouter({ prefix }: { prefix: string } = { prefix: '/' }) {
-
+//每个路由都有 ‘/’
     let firstNode: NODE = {
         children: {},
         part: '/',
@@ -30,7 +30,6 @@ export function createRouter({ prefix }: { prefix: string } = { prefix: '/' }) {
     let target = firstNode;
     if (prefix !== '/') {
         const parts = prefix.split('/');
-        parts[0] = '/';
         for (let start = 1; start < parts.length; start++) {
             target = target.children[parts[start]] = {
                 children: {},
@@ -46,9 +45,28 @@ export function createRouter({ prefix }: { prefix: string } = { prefix: '/' }) {
     const route: { tree: NODE } = {
         tree: firstNode
     }
+    //重载GET/POST等函数实现
+    function insertHandler(...args: unknown[]){
+        if((args as any[]).length === 3)
+        insertNode(target as NODE, (args as any)[0], (args as any)[1], (args as any)[2]);
+        if((args as any[]).length === 4){//有中间件重写handler
+            let handler = (context: Context)=>{
+                let ctx = context;
+                for(const mid of (args as any)[2]){
+                    const resOfMiddleFunc = mid(context);
+                    if(resOfMiddleFunc instanceof Response){//中间件拦截，判断条件是中间件返回了一个对象 因为中间件返回
+                        return resOfMiddleFunc;
+                    }
+                }
+                return (args as any)[3](ctx);//调用handler并传入处理过的context
+            }
+            insertNode(target as NODE, (args as any)[0], (args as any)[1], handler);
+        }
+        return route;
+    }
     for (const method of methods) {
-        Reflect.set(route, method, function (path: string, handle: (context: Context) => Response) {
-            insertNode(target as NODE, method, path, handle);
+        Reflect.set(route, method, function(...args: any[]){
+                insertHandler(method, ...args)
         })
     }
     Reflect.set(route, 'matchRoute', function (req: Request) {
@@ -61,16 +79,9 @@ export function createRouter({ prefix }: { prefix: string } = { prefix: '/' }) {
 }
 
 export function compose(...node: RouterType[]) {
-    let root: RouterType;
-    let i = 0;//两次遍历均会用到
-    for (; i < node.length; i++) {
-        if (node[i].tree.part === '/') {
-            root = node[i];
-            break;
-        }
-    }
-    node.forEach((route, index) => {
-        if (i === index) return;
+    if(node.length < 2) throw("At least two parameters are required!")
+    let root = node[0];
+    node.slice(1).forEach((route) => {
         mergeToNode(root.tree, route.tree);
     })
 }
