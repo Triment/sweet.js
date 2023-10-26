@@ -33,6 +33,7 @@ route.GET("/xx/:90", (c)=>{
     return new Response("xx"+ c.params['90']);
 })
 ```
+Middleware useage
 ```js
 function mid(ctx){
     console.log(ctx.req);
@@ -40,6 +41,20 @@ function mid(ctx){
 }
 route.GET("/hello",[mid], (c)=>{
     console.log(c.hello);//90
+    return new Response("hello");
+})
+```
+Middleware can intercept the response when you need it
+
+```js
+function mid(ctx){
+    if(!ctx.req.headers['x-token']){
+        return new Response("You need to log in")
+    }
+}
+//The following  code for handler will flood
+route.GET("/hello",[mid], (c)=>{
+    console.log(c.hello);
     return new Response("hello");
 })
 ```
