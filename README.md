@@ -17,13 +17,13 @@ import { compose, createRouter } from  '@triment/sweet.js';//compose is a Combin
 ```js
 const route = createRouter();
 ```
-Prefix
+#### Prefix
 ```js
 const route2 = createRouter({
     prefix: '/other'
 });
 ```
-Route handler
+#### Route handler
 ```js
 route.GET("/", (c)=>{
     return new Response("/");
@@ -33,7 +33,7 @@ route.GET("/xx/:90", (c)=>{
     return new Response("xx"+ c.params['90']);
 })
 ```
-Middleware useage
+#### Middleware useage
 ```js
 function mid(ctx){
     console.log(ctx.req);
@@ -44,7 +44,7 @@ route.GET("/hello",[mid], (c)=>{
     return new Response("hello");
 })
 ```
-Middleware can intercept the response when you need it
+#### Middleware can intercept the response when you need it
 
 ```js
 function mid(ctx){
@@ -58,7 +58,7 @@ route.GET("/hello",[mid], (c)=>{
     return new Response("hello");
 })
 ```
-Emit to bun.js together
+#### Emit to bun.js together
 
 ```js
 import { compose, createRouter } from  '@triment/sweet.js'
