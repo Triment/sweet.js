@@ -2,12 +2,12 @@ import { expect, test, describe } from "bun:test";
 import { compose, createRouter } from "./route";
 import { Context, searchNode } from "./trie2";
 
-describe("测试路由合并", ()=>{
-    test("Compose Test", ()=>{
+describe("测试路由合并", () => {
+    test("Compose Test", () => {
         const route0 = createRouter();
-        const route1 = createRouter({ prefix: '/hello'});
-        const hand = (ctx: Context)=>{ return new Response()};
-        const hand2 = (ctx: Context)=>{ return new Response("helo")};
+        const route1 = createRouter({ prefix: '/hello' });
+        const hand = async (ctx: Context) => { return new Response() };
+        const hand2 = async (ctx: Context) => { return new Response("helo") };
         route0.GET("/huhu", hand);
         route1.GET("/:bker", hand2);
 
@@ -21,15 +21,15 @@ describe("测试路由合并", ()=>{
     })
 })
 
-describe("中间件", ()=>{
-    test("Middleware Test", async ()=>{
+describe("中间件", () => {
+    test("Middleware Test", async () => {
         const route0 = createRouter();
-        const hand = (ctx: Context)=>{ return new Response("helo")};
-        async function mid(context: Context){
+        const hand = async (ctx: Context) => { return new Response("helo") };
+        async function mid(context: Context) {
             context.mid = "testmid"
             return new Response("hello")
         }
-        route0.GET("/huhu",[mid], hand);
+        route0.GET("/huhu", [mid], hand);
         const req = new Request('http://localhost:3000/huhu', {
             method: 'GET'
         })
@@ -37,10 +37,10 @@ describe("中间件", ()=>{
         expect(res instanceof Response).toBe(true);
         //test context modify
 
-        function hand2(context: Context){
+        async function hand2(context: Context) {
             return new Response(context.test)
         }
-        route0.POST("/huhu",[async (context)=>{
+        route0.POST("/huhu", [async (context) => {
             context.test = "test";
         }], hand2);
         const req2 = new Request('http://localhost:3000/huhu', {

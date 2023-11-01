@@ -9,8 +9,8 @@ const methods = ['POST', 'GET', 'HEAD', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', '
 type MiddleType = ((context: Context)=>Promise<void>)|((context: Context)=>Promise<Response>);
 
 
-declare function methodHandler(path: string, handle: (context: Context) => Response):void
-declare function methodHandler(path: string, middle: MiddleType[],  handle: (context: Context) => Response):void
+declare function methodHandler(path: string, handle: (context: Context) => Promise<Response>):void
+declare function methodHandler(path: string, middle: MiddleType[],  handle: (context: Context) => Promise<Response>):void
 //方法类型
 type MethodsType = typeof methodHandler;
 //路由类型
