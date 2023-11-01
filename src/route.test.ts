@@ -25,7 +25,7 @@ describe("中间件", ()=>{
     test("Middleware Test", async ()=>{
         const route0 = createRouter();
         const hand = (ctx: Context)=>{ return new Response("helo")};
-        function mid(context: Context){
+        async function mid(context: Context){
             context.mid = "testmid"
             return new Response("hello")
         }
@@ -33,20 +33,20 @@ describe("中间件", ()=>{
         const req = new Request('http://localhost:3000/huhu', {
             method: 'GET'
         })
-        let res = route0.matchRoute(req);
+        let res = await route0.matchRoute(req);
         expect(res instanceof Response).toBe(true);
         //test context modify
 
         function hand2(context: Context){
             return new Response(context.test)
         }
-        route0.POST("/huhu",[(context)=>{
+        route0.POST("/huhu",[async (context)=>{
             context.test = "test";
         }], hand2);
         const req2 = new Request('http://localhost:3000/huhu', {
             method: 'POST'
         });
-        const res2 = route0.matchRoute(req2)
+        const res2 = await route0.matchRoute(req2)
         expect(await res2.text()).toBe("test")
     })
 })

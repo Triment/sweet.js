@@ -6,7 +6,7 @@ const methods = ['POST', 'GET', 'HEAD', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', '
 
 
 //中间件类型
-type MiddleType = ((context: Context)=>void)|((context: Context)=>Response);
+type MiddleType = ((context: Context)=>Promise<void>)|((context: Context)=>Promise<Response>);
 
 
 declare function methodHandler(path: string, handle: (context: Context) => Response):void
@@ -16,7 +16,7 @@ type MethodsType = typeof methodHandler;
 //路由类型
 type RouterType = {
     tree: NODE,
-    matchRoute: (req: Request) => Response
+    matchRoute: (req: Request) => Promise<Response>
 } & { [key in HttpType]: MethodsType }
 
 export function createRouter({ prefix }: { prefix: string } = { prefix: '/' }) {
@@ -50,15 +50,15 @@ export function createRouter({ prefix }: { prefix: string } = { prefix: '/' }) {
         if((args as any[]).length === 3)
         insertNode(target as NODE, (args as any)[0], (args as any)[1], (args as any)[2]);
         if((args as any[]).length === 4){//有中间件重写handler
-            let handler = (context: Context)=>{
+            let handler = async (context: Context)=>{
                 let ctx = context;
                 for(const mid of (args as any)[2]){
-                    const resOfMiddleFunc = mid(context);
+                    const resOfMiddleFunc = await mid(context);
                     if(resOfMiddleFunc instanceof Response){//中间件拦截，判断条件是中间件返回了一个对象 因为中间件返回
                         return resOfMiddleFunc;
                     }
                 }
-                return (args as any)[3](ctx);//调用handler并传入处理过的context
+                return await (args as any)[3](ctx);//调用handler并传入处理过的context
             }
             insertNode(target as NODE, (args as any)[0], (args as any)[1], handler);
         }
@@ -70,9 +70,9 @@ export function createRouter({ prefix }: { prefix: string } = { prefix: '/' }) {
         })
     }
     Reflect.set(route, 'matchRoute', function (req: Request) {
-        return Reflect.apply(function (this: RouterType, req: Request) {
+        return Reflect.apply(async function (this: RouterType, req: Request) {
             const [node, params] = searchNode(this.tree, req.method.toUpperCase(), new URL(req.url).pathname)
-            return node({ req: req, params });
+            return await node({ req: req, params });
         }, route, [req])
     })
     return route as RouterType;

@@ -8,10 +8,10 @@ describe("测试前缀树(new)", ()=>{
             wildChild: false,
             index: 0
         }
-        const handle = (ctx: Context) => {
+        const handle = async (ctx: Context) => {
             return new Response(ctx.req.url)
         }
-        const handle2 = (ctx: Context) => {
+        const handle2 = async (ctx: Context) => {
             return new Response(ctx.req.url)
         }
         insertNode(node, 'GET', "/hello/:x/:y", handle);

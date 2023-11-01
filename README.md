@@ -25,21 +25,21 @@ const route2 = createRouter({
 ```
 #### Route handler
 ```js
-route.GET("/", (c)=>{
+route.GET("/", async(c)=>{
     return new Response("/");
 })
 
-route.GET("/xx/:90", (c)=>{
+route.GET("/xx/:90", async(c)=>{
     return new Response("xx"+ c.params['90']);
 })
 ```
 #### Middleware useage
 ```js
-function mid(ctx){
+async function mid(ctx){
     console.log(ctx.req);
     ctx.hello = 90;
 }
-route.GET("/hello",[mid], (c)=>{
+route.GET("/hello",[mid], async(c)=>{
     console.log(c.hello);//90
     return new Response("hello");
 })
@@ -47,13 +47,13 @@ route.GET("/hello",[mid], (c)=>{
 #### Middleware can intercept the response when you need it
 
 ```js
-function mid(ctx){
+async function mid(ctx){
     if(!ctx.req.headers['x-token']){
         return new Response("You need to log in")
     }
 }
 //The following  code for handler will flood
-route.GET("/hello",[mid], (c)=>{
+route.GET("/hello",[mid], async(c)=>{
     console.log(c.hello);
     return new Response("hello");
 })
@@ -69,16 +69,16 @@ const route2 = createRouter({
     prefix: '/xx'
 })
 
-route.GET("/", (c)=>{
+route.GET("/", async (c)=>{
     return new Response("/")
 })
-route.GET("/hello", (c)=>{
+route.GET("/hello", async (c)=>{
     return new Response("hello")
 })
-route.GET("/xx/:90", (c)=>{
+route.GET("/xx/:90", async (c)=>{
     return new Response("xx"+ c.params['90'])
 })
-route2.GET("/hello", (c)=>{
+route2.GET("/hello", async (c)=>{
     return new Response("xx/hello")
 })
 
@@ -86,7 +86,7 @@ compose(route, route2)
 
 Bun.serve({
     port: 3000,
-    fetch: (req)=>route.matchRoute(req)
+    fetch: async(req)=> await route.matchRoute(req)
 })
 
 ```
