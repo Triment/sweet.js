@@ -22,6 +22,7 @@ type RouterType = {
 export function createRouter({ prefix }: { prefix: string } = { prefix: '/' }) {
 //每个路由都有 ‘/’
     let firstNode: NODE = {
+        priority: 1,
         children: {},
         part: '/',
         wildChild: false,
@@ -31,7 +32,9 @@ export function createRouter({ prefix }: { prefix: string } = { prefix: '/' }) {
     if (prefix !== '/') {
         const parts = prefix.split('/');
         for (let start = 1; start < parts.length; start++) {
+            let priority = parts[start][0] === "*" ? 3 : parts[start][0] === ":" ? 2 : 1
             target = target.children[parts[start]] = {
+                priority,
                 children: {},
                 part: parts[start],
                 wildChild: parts[start][0] === "*" || parts[start][0] === ":",//叶节点,

@@ -3,6 +3,7 @@ import { NODE, insertNode, searchNode, Context } from './trie2';
 describe("测试前缀树(new)", ()=>{
     test("Insert Test", ()=>{
         let node: NODE = {
+            priority: 1,
             children: {},
             part: '/',
             wildChild: false,
@@ -15,6 +16,7 @@ describe("测试前缀树(new)", ()=>{
             return new Response(ctx.req.url)
         }
         insertNode(node, 'GET', "/hello/:x/:y", handle);
+        console.log(node)
         let target = searchNode(node, 'GET', "/hello/90/80");
         expect(target[1]['x']).toEqual("90")
         insertNode(node, 'POST', "/hello/:x/:y", handle2);
@@ -31,6 +33,7 @@ describe("测试前缀树(new)", ()=>{
 
     test("search Test", ()=>{
         let node: NODE = {
+            priority: 1,
             children: {},
             part: '/',
             wildChild: false,
@@ -39,9 +42,14 @@ describe("测试前缀树(new)", ()=>{
         const handle = async (ctx: Context) => {
             return new Response(ctx.req.url)
         }
+        const handle2 = async (ctx: Context) => {
+            return new Response(ctx.req.formData.name)
+        }
         insertNode(node, 'GET', "/node_modules/*file", handle);
-        insertNode(node, 'GET', "/*file", handle);
+        insertNode(node, 'GET', "/*file", handle2);
         const target = searchNode(node, 'GET', '/node_modules/huhu/pop');
         expect(target[1]['file']).toBe("huhu/pop");
+        const target2 = searchNode(node, 'GET', '/noded_modules/huhu/pop');
+        expect(target2[1]['file']).toBe("noded_modules/huhu/pop");
     })
 })

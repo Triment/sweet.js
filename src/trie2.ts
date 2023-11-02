@@ -8,6 +8,7 @@ type HTTPHandler = (context: Context) => Promise<Response>
 type NODE = {
     children: Record<string, NODE>,
     part: string,
+    priority: number,
     wildChild: Boolean,
     fullPath?: string,
     parent?: NODE,
@@ -24,11 +25,13 @@ function insertNode(node: NODE, method: string, path: string, handle: (context: 
         if (child) {
             target = child;
         } else {
+            let priority = parts[start][0] === "*" ? 3 : parts[start][0] === ":"? 2 : 1
             target = target.children[parts[start]] = {
                 children: {},
                 part: parts[start],
                 wildChild: parts[start][0] === "*" || parts[start][0] === ":",//叶节点,
                 //fullPath: parts.slice(0, start).join('/'),//用作节点的唯一ID
+                priority,
                 parent: target,
                 index: start + node.index//每次插入需加上“基节点”的层级
             }
@@ -53,23 +56,17 @@ function searchNode(node: NODE, method: string, path: string): [HTTPHandler, Rec
         // console.log(index, current.part, current.index, parts[index])
         if (current.index - node.index == index) {//此处可以支持从子节点搜索路径
             if (current.part === parts[index]) {//精准匹配
+                stack = stack.concat(Object.keys(current.children).map(key=>current.children[key]).sort((l,r)=> r.priority - l.priority))
                 index++;
-                for (const child of Object.keys(current.children)) {
-                    stack.push(current.children[child]);
-                }
-                continue;
             }
             if (current.part[0] === ':') {//模糊匹配
-                for (const child of Object.keys(current.children)) {
-                    stack.push(current.children[child]);
-                }
+                stack = stack.concat(Object.keys(current.children).map(key=>current.children[key]).sort((l,r)=> r.priority - l.priority))
                 params[current.part.slice(1)] = parts[index];
                 index++;
-                continue;
             }
             if (current.part[0] === '*' && current.wildChild) {
                 params[current.part.slice(1)] = parts.slice(index).join('/');
-                continue;
+                return [current.handle![method], params]
             }
         } else {
             index--;
