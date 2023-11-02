@@ -57,6 +57,7 @@ function searchNode(node: NODE, method: string, path: string): [HTTPHandler, Rec
                 for (const child of Object.keys(current.children)) {
                     stack.push(current.children[child]);
                 }
+                continue;
             }
             if (current.part[0] === ':') {//模糊匹配
                 for (const child of Object.keys(current.children)) {
@@ -64,10 +65,11 @@ function searchNode(node: NODE, method: string, path: string): [HTTPHandler, Rec
                 }
                 params[current.part.slice(1)] = parts[index];
                 index++;
+                continue;
             }
             if (current.part[0] === '*' && current.wildChild) {
                 params[current.part.slice(1)] = parts.slice(index).join('/');
-                return [current.handle![method], params];
+                continue;
             }
         } else {
             index--;

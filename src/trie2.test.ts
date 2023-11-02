@@ -27,5 +27,21 @@ describe("测试前缀树(new)", ()=>{
         insertNode(node, 'POST', "/hello/:x/*target", handle2);
         target = searchNode(node, "POST", "/hello/80/hu/max");
         expect(target[1]['target']).toEqual("hu/max");
+    });
+
+    test("search Test", ()=>{
+        let node: NODE = {
+            children: {},
+            part: '/',
+            wildChild: false,
+            index: 0
+        }
+        const handle = async (ctx: Context) => {
+            return new Response(ctx.req.url)
+        }
+        insertNode(node, 'GET', "/node_modules/*file", handle);
+        insertNode(node, 'GET', "/*file", handle);
+        const target = searchNode(node, 'GET', '/node_modules/huhu/pop');
+        expect(target[1]['file']).toBe("huhu/pop");
     })
 })
