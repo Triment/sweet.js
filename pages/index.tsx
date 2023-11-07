@@ -10,3 +10,4 @@ function Component(props: { message: string }) {
   );
 }
 render(<Component message="Hello world!" />, document.body)
+document.getElementById

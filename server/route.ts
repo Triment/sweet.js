@@ -35,7 +35,10 @@ export function createRouter( { prefix } : {prefix: string } = { prefix: '/' }){
     }
     Reflect.set(route, 'matchRoute', function (req: Request){
         return Reflect.apply(function (this: RouterType, req: Request){
-            const [node, params] = searchNode(this.tree, req.method.toUpperCase(), new URL(req.url).pathname)
+            const [node, params] = searchNode(this.tree, req.method.toUpperCase(), new URL(req.url).pathname);
+            if(!node){
+                return new Response("Not Found", { status: 404 });
+            }
             return node({req: req, params});
         }, route, [req])
     })

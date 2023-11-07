@@ -41,7 +41,7 @@ function insertNode(NODE: NODE, method: string, path: string, handle: (context: 
     target.handle![method] = handle;
 }
 
-function searchNode(NODE: NODE, method: string, path: string): [HTTPHandler, Record<string, string>]{
+function searchNode(NODE: NODE, method: string, path: string): [HTTPHandler|undefined, Record<string, string>]{
     const parts = path.split('/').slice(1);
     assert(parts.length > 0);
     let params: Record<string, string> = {};
@@ -72,6 +72,9 @@ function searchNode(NODE: NODE, method: string, path: string): [HTTPHandler, Rec
             index--;
         }
     } while(index < parts.length && stack.length > 0);
+    if(!current || !current.handle || !current.handle[method]){
+        return [undefined, params]
+    }
     return [current.handle![method], params];
 }
 
