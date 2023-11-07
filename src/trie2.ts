@@ -43,7 +43,7 @@ function insertNode(node: NODE, method: string, path: string, handle: (context: 
     target.handle![method] = handle;
 }
 
-function searchNode(node: NODE, method: string, path: string): [HTTPHandler, Record<string, string>] {
+function searchNode(node: NODE, method: string, path: string): [HTTPHandler|undefined, Record<string, string>] {
     const parts = path.split('/');
     if (path[0] === '/') // 从根开始搜索
         parts[0] = '/';//第一节点设置为 '/'
@@ -72,6 +72,9 @@ function searchNode(node: NODE, method: string, path: string): [HTTPHandler, Rec
             index--;
         }
     } while (index < parts.length && stack.length > 0);
+    if(!current || !current.handle || !current.handle[method]){
+        return [undefined, params]
+    }
     return [current.handle![method], params];
 }
 //合并两个树
